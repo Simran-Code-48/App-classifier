@@ -26,7 +26,7 @@ conn = get_connection()
 
 # Insert data into the table
 def insert_data(package_id, app_name, female_centric):
-    # conn = get_connection()
+    
     if conn:
         try:
             cursor = conn.cursor()
@@ -60,6 +60,8 @@ if uploaded_file is not None:
         responses = []
 
         for index, row in df.iterrows():
+            if conn is None:
+                conn = get_connection()
             # st.write(f"Row index: {index}")
             prompt = (
                 "Below is the data of an app. Based on this data, classify whether the app is female-centric, meaning it is primarily focused on female customers or the main consumers are females. Use provided data. Even if some data might be ambiguous or general, please make a reasoned assumption based on the descriptions and categories. Return the response as true or false only where true respresents female centric and false if not female centric \n"
