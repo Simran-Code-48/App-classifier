@@ -1,3 +1,5 @@
 streamlit
+openai
 google.generativeai
-psycopg2
+psycopg2-binary
+pandas
