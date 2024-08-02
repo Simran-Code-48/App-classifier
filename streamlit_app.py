@@ -1,53 +1,78 @@
 import streamlit as st
-from openai import OpenAI
+import pandas as pd
+import google.generativeai as genai
+import time
 
-# Show title and description.
+# -----------------------------------------------------
+
+# # access API KEY
+# genai.configure(api_key=st.secrets.API_KEY)
+# # select a model
+# model = genai.GenerativeModel('gemini-1.5-flash')
+# # choose a prompt
+# prompt = "Tell about you"
+# # get a response
+# response = model.generate_content(prompt)
+# # response as text
+# st.write(response.text)
+
+# ------------------------------------------------------
+
+# Access API KEY
+genai.configure(api_key=st.secrets.API_KEY)
+# Select a model
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# -----------------
+
 st.title("📄 App Classifier")
 st.write(
     "Upload a document conatining data , you want to classify."
 )
+uploaded_file = st.file_uploader(
+    "Upload a document (.csv)", type=("csv")
+)
+if uploaded_file is not None:
+    # Read CSV file
+    df = pd.read_csv(uploaded_file)
+    # st.write("Table : ")
+    # st.write(df.head(15))
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            df[column] = df[column].astype(str)
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+    if st.button("Submit"):
+        # Initialize response container
+        responses = []
 
-    # Let the user upload a file via `st.file_uploader`.
-    uploaded_file = st.file_uploader(
-        "Upload a document (.csv)", type=("csv")
-    )
-
-    # Ask the user for a question via `st.text_area`.
-    question = st.text_area(
-        "Now ask a question about the document!",
-        placeholder="Can you give me a short summary?",
-        disabled=not uploaded_file,
-    )
-    if not question :
-        question = "Below given is the data of the apps, based on provided data classify them as female centric or not"
-    if uploaded_file and question:
-
-        # Process the uploaded file and question.
-        document = uploaded_file.read().decode()
-        messages = [
-            {
-                "role": "user",
-                "content": f"Here's a document: {document} \n\n---\n\n {question}",
-            }
-        ]
-
-        # Generate an answer using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            stream=True,
-        )
-
-        # Stream the response to the app using `st.write_stream`.
-        st.write_stream(stream)
+        # Iterate over the dataframe in chunks of 15 rows
+        for i in range(0, len(df), 15):
+            chunk = df.iloc[i:i+15]
+            prompt = (
+                "We have a dataset where each row represents an app, along with its attributes. Based on this data, classify whether the app is female-centric, meaning it is primarily focused on female customers or the main consumers are females. "
+                "Use provided data. Even if some data might be ambiguous or general, please make a reasoned assumption based on the descriptions and categories. Return the table {packageId, appName, true and false for female centric} only without reasoning\n\n"
+                "Data is in the form :\n"
+                f"package: String\n"
+                f"appName: String\n"
+                f"description: String\n"
+                f"category: String\n"
+                f"packageId: Integer\n"
+                f"userCount: Integer\n\n"
+                "Data:\n"
+                f"{chunk.to_string(index=False)}\n\n"
+            )
+            
+            # Send prompt to AI model
+            response = model.generate_content(prompt)
+            
+            # Append the response to the list
+            responses.append(response.text)
+            
+            # Display the intermediate results
+            st.write("AI Model Response for chunk starting at row", i)
+            st.write(response.text)
+            
+            st.write("-----------------------------")
+            # Introduce a delay before sending the next request
+            time.sleep(60)
