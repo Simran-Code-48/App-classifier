@@ -11,17 +11,6 @@ genai.configure(api_key=st.secrets.API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 # Define your connection string
 conn_string = st.secrets["conn_string"]
-<<<<<<< HEAD
-
-# Establish a connection to the PostgreSQL database
-# def get_connection():
-#     try:
-#         conn = psycopg2.connect(conn_string)
-#         return conn
-#     except OperationalError as e:
-#         st.error(f"Could not connect to the database: {e}")
-#         return None
-=======
  
 # # Establish a connection to the PostgreSQL database
 def get_connection():
@@ -32,9 +21,8 @@ def get_connection():
     except OperationalError as e:
         st.error(f"Could not connect to the database: {e}")
         return None
->>>>>>> 3f6bf0a (working fine)
 
-# conn = get_connection()
+conn = get_connection()
 
 # Insert data into the table
 def insert_data(package_id, app_name, female_centric):
@@ -89,7 +77,7 @@ if uploaded_file is not None:
                 is_female_centric = "True"
             if "false" in response.text.lower():
                 is_female_centric = "False"
-            # insert_data(row['packageId'], row['appName'], is_female_centric)
+            insert_data(row['packageId'], row['appName'], is_female_centric)
             st.write("AI Model Response for chunk starting at row", index)
             st.write("Package ID : ",row['packageId'])
             st.write(row['appName'])
