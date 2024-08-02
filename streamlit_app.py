@@ -26,7 +26,7 @@ conn = get_connection()
 
 # Insert data into the table
 def insert_data(package_id, app_name, female_centric):
-    conn = get_connection()
+    # conn = get_connection()
     if conn:
         try:
             cursor = conn.cursor()
@@ -78,7 +78,7 @@ if uploaded_file is not None:
             if "false" in response.text.lower():
                 is_female_centric = "False"
             insert_data(row['packageId'], row['appName'], is_female_centric)
-            st.write("AI Model Response for chunk starting at row", index)
+            st.write("AI Model Response for row", index)
             st.write("Package ID : ",row['packageId'])
             st.write(row['appName'])
             # st.write(row['packageId'])
@@ -89,3 +89,4 @@ if uploaded_file is not None:
                 st.write("Non Female centric")
             st.write("-----------------------------------------------------------------")
             time.sleep(4)
+        conn.close()
