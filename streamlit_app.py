@@ -54,6 +54,7 @@ def insert_data(package_id, app_name, female_centric):
             cursor.close()
             # st.success("Changes saved successfully!")
         except Exception as e:
+            conn.rollback()
             st.error(f"Error inserting data: {e}")
 
 # -----------------
